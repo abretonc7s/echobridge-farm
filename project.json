@@ -1,0 +1,65 @@
+{
+  "$schema": "../../schemas/project.schema.json",
+  "name": "echobridge-farm",
+  "type": "monorepo",
+  "owner_agent": "echobridge",
+  "primary_repo": "/Users/deeeed/dev/echobridge/echobridge_monorepo",
+  "worktree_base": "/Users/deeeed/dev/echobridge-wt",
+  "apps": ["echobridge"],
+  "hooks": {
+    "setup": "yarn install",
+    "preflight": "yarn start --port {{port}}",
+    "health_check": "lsof -i :{{port}} >/dev/null 2>&1",
+    "dev_server_check": "lsof -i :{{port}} >/dev/null 2>&1",
+    "recycle": "xcrun simctl shutdown {{simulator}}"
+  },
+  "platforms": {
+    "ios": {
+      "device_check": "xcrun simctl list devices booted 2>/dev/null | grep -q '{{simulator}}'",
+      "recycle": null
+    },
+    "android": {
+      "device_check": "adb devices 2>/dev/null | grep -q '{{adb_serial}}'",
+      "recycle": "adb -s {{adb_serial}} shell pm clear com.echobridge"
+    }
+  },
+  "resources": {
+    "ios-sim": {
+      "type": "device",
+      "platform": "ios",
+      "label": "iOS Sim",
+      "streamable": true,
+      "controllable": true,
+      "watch": { "type": "process-poll", "cmd": "xcrun simctl list devices booted 2>/dev/null | grep -q '{{simulator}}'" },
+      "hooks": {
+        "health": "xcrun simctl list devices booted 2>/dev/null | grep -q '{{simulator}}'",
+        "boot": "xcrun simctl boot '{{simulator}}'",
+        "shutdown": "xcrun simctl shutdown '{{simulator}}'"
+      }
+    },
+    "android-emu": {
+      "type": "device",
+      "platform": "android",
+      "label": "Android Emu",
+      "streamable": true,
+      "controllable": true,
+      "watch": { "type": "process-poll", "cmd": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device" },
+      "hooks": {
+        "health": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device",
+        "boot": "$ANDROID_HOME/emulator/emulator -avd {{avd}} &",
+        "shutdown": "adb -s {{adb_serial}} emu kill"
+      }
+    },
+    "dev-server": {
+      "type": "dev-server",
+      "label": "Metro",
+      "streamable": false,
+      "controllable": true,
+      "watch": { "type": "port-listen", "port": "{{port}}" },
+      "hooks": {
+        "health": "lsof -i :{{port}} >/dev/null 2>&1",
+        "shutdown": "lsof -ti :{{port}} 2>/dev/null | xargs kill 2>/dev/null; true"
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+# Transient dispatch data
+tasks/
+runs/
+
+# Private scoring data
+scores/
+
+# Local reference clones
+.src/
+
+# OS / runtime
+.DS_Store
+*.log
