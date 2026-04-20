@@ -2,6 +2,7 @@
   "$schema": "../../schemas/project.schema.json",
   "name": "echobridge-farm",
   "type": "monorepo",
+  "default_safety_tier": "dangerous",
   "owner_agent": "echobridge",
   "primary_repo": "/Users/deeeed/dev/echobridge/echobridge_monorepo",
   "worktree_base": "/Users/deeeed/dev/echobridge-wt",
