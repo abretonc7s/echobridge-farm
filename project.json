@@ -7,12 +7,22 @@
   "primary_repo": "/Users/deeeed/dev/echobridge/echobridge_monorepo",
   "worktree_base": "/Users/deeeed/dev/echobridge-wt",
   "apps": ["echobridge"],
+  "paths": {
+    "runtime_dir": "apps/echobridge/.agent"
+  },
   "hooks": {
-    "setup": "yarn install",
-    "preflight": "yarn start --port {{port}}",
-    "health_check": "lsof -i :{{port}} >/dev/null 2>&1",
-    "dev_server_check": "lsof -i :{{port}} >/dev/null 2>&1",
+    "setup": "yarn install --immutable",
+    "preflight": "METRO_PORT={{metro_port}} WATCHER_PORT={{metro_port}} METRO_CONNECTION=localhost bash apps/echobridge/scripts/agentic/start-metro.sh",
+    "health_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
+    "dev_server_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
+    "recipe_action_manifest": "cd {{repo}}/apps/echobridge && yarn recipe:echobridge manifest",
+    "recipe_doctor": "cd {{repo}}/apps/echobridge && yarn recipe:doctor --json | node -e 'let s=\"\"; process.stdin.on(\"data\",d=>s+=d); process.stdin.on(\"end\",()=>{const d=JSON.parse(s); const pass=d.status===\"pass\"; console.log(JSON.stringify({runner_protocol_version:1,status:pass?\"pass\":\"fail\",checks:[{id:\"expo_recipe_doctor\",status:pass?\"pass\":\"fail\",message:\"@farmslot/expo-recipe doctor readiness\"}]}));})'",
+    "recipe_run": "cd {{repo}}/apps/echobridge && PLATFORM='{{platform}}' IOS_SIMULATOR='{{simulator}}' ADB_SERIAL='{{adb_serial}}' CDP_PORT='{{cdp_port}}' bash scripts/agentic/validate-recipe.sh --recipe {{recipe_path}} --artifacts-dir {{artifacts_dir}} --runtime-dir {{runtime_dir}} --metro-port {{metro_port}}",
     "recycle": "xcrun simctl shutdown {{simulator}}"
+  },
+  "health": {
+    "dev_server_log": "apps/echobridge/.agent/metro.log",
+    "dev_server_name": "Metro"
   },
   "platforms": {
     "ios": {
@@ -31,7 +41,12 @@
       "label": "iOS Sim",
       "streamable": true,
       "controllable": true,
-      "watch": { "type": "process-poll", "cmd": "xcrun simctl list devices booted 2>/dev/null | grep -q '{{simulator}}'" },
+      "watch": {
+        "type": "process-poll",
+        "provider": "ios-simulator-inventory",
+        "target": "{{simulator}}",
+        "cmd": "xcrun simctl list devices booted 2>/dev/null | grep -q '{{simulator}}'"
+      },
       "hooks": {
         "health": "xcrun simctl list devices booted 2>/dev/null | grep -q '{{simulator}}'",
         "boot": "xcrun simctl boot '{{simulator}}'",
@@ -56,11 +71,13 @@
       "label": "Metro",
       "streamable": false,
       "controllable": true,
-      "watch": { "type": "port-listen", "port": "{{port}}" },
+      "watch": { "type": "port-listen", "port": "{{metro_port}}" },
       "hooks": {
-        "health": "lsof -i :{{port}} >/dev/null 2>&1",
-        "shutdown": "lsof -ti :{{port}} 2>/dev/null | xargs kill 2>/dev/null; true"
+        "health": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
+        "shutdown": "lsof -ti :{{metro_port}} 2>/dev/null | xargs kill 2>/dev/null; true"
       }
     }
-  }
+  },
+  "recipe_run_supports_playback_slow": false,
+  "recipe_run_supports_video_recording": false
 }
