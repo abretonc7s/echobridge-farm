@@ -135,36 +135,52 @@ test('recipe hooks preserve checkout and file arguments containing spaces', t =>
   const repo = path.join(f.root, 'slot checkout');
   const app = path.join(repo, 'apps/echobridge');
   mkdirSync(app, { recursive: true });
+  const recipe = path.join(f.root, 'recipe library/smoke test.json');
+  const artifacts = path.join(f.root, 'run artifacts');
   const values = {
     repo,
     platform: 'android',
     simulator: 'Test Sim',
     adb_serial: 'emulator-5596',
     cdp_port: '9222',
-    recipe_path: path.join(f.root, 'recipe library/smoke test.json'),
-    artifacts_dir: path.join(f.root, 'run artifacts'),
+    // The gateway supplies these two placeholders as shell expressions.
+    recipe_path: `'${recipe}'`,
+    artifacts_dir: `'${artifacts}'`,
     runtime_dir: path.join(f.root, 'slot runtime'),
     metro_port: '7706',
   };
   const project = JSON.parse(readFileSync(new URL('../project.json', import.meta.url), 'utf8'));
-  const outputs = {};
-  for (const name of ['recipe_action_manifest', 'recipe_doctor', 'recipe_run']) {
-    const command = project.hooks[name].replace(/\{\{(\w+)\}\}/g, (_, key) => values[key]);
+  function runHook(name, bindings = values) {
+    const command = project.hooks[name].replace(/\{\{(\w+)\}\}/g, (_, key) => bindings[key]);
     const result = spawnSync('/bin/zsh', ['-f', '-c', command], {
-      env: { PATH: `${bin}:${process.env.PATH}` },
+      env: { PATH: `${bin}:${process.env.PATH}`, HOME: process.env.HOME },
       encoding: 'utf8',
       timeout: 2000,
     });
     assert.equal(result.status, 0, `${name}: ${result.stderr}`);
-    outputs[name] = JSON.parse(result.stdout);
+    return JSON.parse(result.stdout);
+  }
+  const outputs = {};
+  for (const name of ['recipe_action_manifest', 'recipe_doctor', 'recipe_run']) {
+    outputs[name] = runHook(name);
   }
   assert.equal(outputs.recipe_action_manifest.cwd, app);
   assert.equal(outputs.recipe_doctor.status, 'pass');
   assert.equal(outputs.recipe_run.cwd, app);
   assert.equal(outputs.recipe_run.platform, 'android');
   assert.deepEqual(outputs.recipe_run.argv, [
-    'scripts/agentic/validate-recipe.sh', '--recipe', values.recipe_path,
-    '--artifacts-dir', values.artifacts_dir, '--runtime-dir', values.runtime_dir,
+    'scripts/agentic/validate-recipe.sh', '--recipe', recipe,
+    '--artifacts-dir', artifacts, '--runtime-dir', values.runtime_dir,
     '--metro-port', values.metro_port,
+  ]);
+  const homeRun = runHook('recipe_run', {
+    ...values,
+    recipe_path: '"${HOME}/recipe library/smoke test.json"',
+    artifacts_dir: '"${HOME}/run artifacts"',
+  });
+  assert.deepEqual(homeRun.argv, [
+    'scripts/agentic/validate-recipe.sh', '--recipe', path.join(process.env.HOME, 'recipe library/smoke test.json'),
+    '--artifacts-dir', path.join(process.env.HOME, 'run artifacts'),
+    '--runtime-dir', values.runtime_dir, '--metro-port', values.metro_port,
   ]);
 });

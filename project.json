@@ -16,7 +16,7 @@
     "dev_server_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
     "recipe_action_manifest": "cd \"{{repo}}/apps/echobridge\" && yarn recipe:echobridge manifest",
     "recipe_doctor": "cd \"{{repo}}/apps/echobridge\" && yarn recipe:doctor --json | node -e 'let s=\"\"; process.stdin.on(\"data\",d=>s+=d); process.stdin.on(\"end\",()=>{const d=JSON.parse(s); const pass=d.status===\"pass\"; console.log(JSON.stringify({runner_protocol_version:1,status:pass?\"pass\":\"fail\",checks:[{id:\"expo_recipe_doctor\",status:pass?\"pass\":\"fail\",message:\"@farmslot/expo-recipe doctor readiness\"}]}));})'",
-    "recipe_run": "cd \"{{repo}}/apps/echobridge\" && PLATFORM='{{platform}}' IOS_SIMULATOR='{{simulator}}' ADB_SERIAL='{{adb_serial}}' CDP_PORT='{{cdp_port}}' bash scripts/agentic/validate-recipe.sh --recipe \"{{recipe_path}}\" --artifacts-dir \"{{artifacts_dir}}\" --runtime-dir \"{{runtime_dir}}\" --metro-port {{metro_port}}",
+    "recipe_run": "cd \"{{repo}}/apps/echobridge\" && PLATFORM='{{platform}}' IOS_SIMULATOR='{{simulator}}' ADB_SERIAL='{{adb_serial}}' CDP_PORT='{{cdp_port}}' bash scripts/agentic/validate-recipe.sh --recipe {{recipe_path}} --artifacts-dir {{artifacts_dir}} --runtime-dir \"{{runtime_dir}}\" --metro-port {{metro_port}}",
     "recycle": "xcrun simctl shutdown {{simulator}}"
   },
   "health": {
