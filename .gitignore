@@ -11,11 +11,4 @@ scores/
 # OS / runtime
 .DS_Store
 *.log
-.omc/project-memory.json
-.omc/state/agent-replay-f52248a1-d87b-442f-b825-715724b589b2.jsonl
-.omc/state/hud-state.json
-.omc/state/hud-stdin-cache.json
-.omc/state/idle-notif-cooldown.json
-.omc/state/sessions/f52248a1-d87b-442f-b825-715724b589b2/pre-tool-advisory-throttle.json
-.omc/state/sessions/f52248a1-d87b-442f-b825-715724b589b2/session-started.json
-.omc/state/sessions/f52248a1-d87b-442f-b825-715724b589b2/subagent-tracking-state.json
+.omc/

@@ -11,7 +11,7 @@
   "hooks": {
     "prerequisites": "bash \"{{farmslot_dir}}/projects/echobridge-farm/setup/check-paths.sh\" \"{{repo}}\" \"{{platform}}\"",
     "setup": "yarn install --immutable",
-    "preflight": "METRO_PORT={{metro_port}} WATCHER_PORT={{metro_port}} METRO_CONNECTION=localhost bash apps/echobridge/scripts/agentic/start-metro.sh",
+    "preflight": "METRO_TMUX_SESSION=echobridge-metro-{{slot_id}} METRO_PORT={{metro_port}} WATCHER_PORT={{metro_port}} METRO_CONNECTION=localhost bash apps/echobridge/scripts/agentic/start-metro.sh",
     "health_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
     "dev_server_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
     "recipe_action_manifest": "cd {{repo}}/apps/echobridge && yarn recipe:echobridge manifest",

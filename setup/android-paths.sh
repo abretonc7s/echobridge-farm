@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # Configured SDK paths shared by prepare checks and machine bootstrap.
+farm_node() {
+  printf '%s\n' "${FARMSLOT_MACHINE:-${MACHINE:-$(hostname)}}"
+}
+
 check_android_paths() {
-  local node="${FARMSLOT_MACHINE:-${MACHINE:-$(hostname)}}" tool
+  local node tool
+  node="$(farm_node)"
   if [ -z "${ANDROID_HOME:-}" ] || [ ! -d "$ANDROID_HOME" ]; then
     echo "missing Android SDK on $node, set ANDROID_HOME in pool.env" >&2
     return 1

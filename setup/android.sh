@@ -53,7 +53,7 @@ if [ ! -d "${REPO_DIR}" ]; then
     git worktree add "${REPO_DIR}" "${BRANCH}"
     echo "PASS Worktree created"
   else
-    echo "missing source checkout on ${FARMSLOT_MACHINE:-${MACHINE:-$(hostname)}}, set ECHOBRIDGE_PRIMARY_REPO in pool.env" >&2
+    echo "missing source checkout on $(farm_node), set ECHOBRIDGE_PRIMARY_REPO in pool.env" >&2
     exit 1
   fi
 fi
