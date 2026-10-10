@@ -72,7 +72,7 @@
       "controllable": true,
       "watch": { "type": "port-listen", "port": "{{metro_port}}" },
       "hooks": {
-        "health": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
+        "health": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" --check",
         "shutdown": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\""
       }
     }

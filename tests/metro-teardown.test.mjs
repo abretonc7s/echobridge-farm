@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { execFile, spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { expandHook } from './hook.mjs';
 
 const stop = fileURLToPath(new URL('../setup/stop-metro.mjs', import.meta.url));
 const execute = promisify(execFile);
@@ -68,7 +69,17 @@ test('recorded launcher is stopped after port cleanup already killed its listene
   while (alive(f.child) && Date.now() < deadline) await delay(10);
   assert.equal(alive(f.child), false);
   assert.equal(alive(f.launcher), true);
-  await execute(process.execPath, [stop, f.repo, String(f.port)]);
+  const project = JSON.parse(readFileSync(new URL('../project.json', import.meta.url), 'utf8'));
+  const framework = path.join(f.repo, 'framework');
+  const setup = path.join(framework, 'projects/echobridge-farm/setup');
+  mkdirSync(setup, { recursive: true });
+  copyFileSync(stop, path.join(setup, 'stop-metro.mjs'));
+  const bindings = { farmslot_dir: framework, repo: f.repo, metro_port: f.port };
+  // Run the configured health gate before shutdown, including the no-listener state.
+  const hooks = project.resources['dev-server'].hooks;
+  await execute('/bin/bash', ['-c', expandHook(hooks.health, bindings)]);
+  assert.equal(alive(f.launcher), true, 'health must be read-only');
+  await execute('/bin/bash', ['-c', expandHook(hooks.shutdown, bindings)]);
   await stopped(f);
 });
 

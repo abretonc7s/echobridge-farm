@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
+import { expandHook } from './hook.mjs';
 
 const check = fileURLToPath(new URL('../setup/check-paths.sh', import.meta.url));
 
@@ -151,7 +152,7 @@ test('recipe hooks preserve checkout and file arguments containing spaces', t =>
   };
   const project = JSON.parse(readFileSync(new URL('../project.json', import.meta.url), 'utf8'));
   function runHook(name, bindings = values) {
-    const command = project.hooks[name].replace(/\{\{(\w+)\}\}/g, (_, key) => bindings[key]);
+    const command = expandHook(project.hooks[name], bindings);
     const result = spawnSync('/bin/zsh', ['-f', '-c', command], {
       env: { PATH: `${bin}:${process.env.PATH}`, HOME: process.env.HOME },
       encoding: 'utf8',

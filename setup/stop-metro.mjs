@@ -4,8 +4,8 @@ import { existsSync, readFileSync, realpathSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
-const [repo, port] = process.argv.slice(2);
-if (!repo || !/^\d+$/.test(port || '')) throw new Error('Usage: stop-metro.mjs <repo> <metro-port>');
+const [repo, port, mode] = process.argv.slice(2);
+if (!repo || !/^\d+$/.test(port || '') || (mode && mode !== '--check')) throw new Error('Usage: stop-metro.mjs <repo> <metro-port> [--check]');
 const app = realpathSync(path.join(repo, 'apps/echobridge'));
 const pidfile = path.join(app, '.agent/metro.pid');
 function command(binary, args) {
@@ -30,13 +30,16 @@ if (existsSync(pidfile)) {
   if (isMetro(processes.get(recorded))) roots.add(recorded);
 }
 // A listener is often Expo's child. Recover its launcher when the PID file is stale.
-for (const listener of listeners()) {
+const portListeners = listeners();
+for (const listener of portListeners) {
   let row = processes.get(listener);
   while (row && row.pid > 1) {
     if (isMetro(row)) roots.add(row.pid);
     row = processes.get(row.parent);
   }
 }
+// Resource control skips shutdown when health fails. A surviving launcher still runs.
+if (mode === '--check') process.exit(roots.size || portListeners.length ? 0 : 1);
 const owned = new Set(roots);
 for (const pid of owned) for (const row of rows) if (row.parent === pid) owned.add(row.pid);
 function signal(pid, signal) {
