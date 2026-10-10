@@ -11,13 +11,13 @@
   "hooks": {
     "prerequisites": "bash \"{{farmslot_dir}}/projects/echobridge-farm/setup/check-paths.sh\" \"{{repo}}\" \"{{platform}}\"",
     "setup": "yarn install --immutable",
-    "preflight": "METRO_TMUX_SESSION=echobridge-metro-{{slot_id}} METRO_PORT={{metro_port}} WATCHER_PORT={{metro_port}} METRO_CONNECTION=localhost bash apps/echobridge/scripts/agentic/start-metro.sh",
+    "preflight": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" && METRO_USE_TMUX=0 METRO_PORT={{metro_port}} WATCHER_PORT={{metro_port}} METRO_CONNECTION=localhost bash apps/echobridge/scripts/agentic/start-metro.sh",
     "health_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
     "dev_server_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
     "recipe_action_manifest": "cd \"{{repo}}/apps/echobridge\" && yarn recipe:echobridge manifest",
     "recipe_doctor": "cd \"{{repo}}/apps/echobridge\" && yarn recipe:doctor --json | node -e 'let s=\"\"; process.stdin.on(\"data\",d=>s+=d); process.stdin.on(\"end\",()=>{const d=JSON.parse(s); const pass=d.status===\"pass\"; console.log(JSON.stringify({runner_protocol_version:1,status:pass?\"pass\":\"fail\",checks:[{id:\"expo_recipe_doctor\",status:pass?\"pass\":\"fail\",message:\"@farmslot/expo-recipe doctor readiness\"}]}));})'",
     "recipe_run": "cd \"{{repo}}/apps/echobridge\" && PLATFORM='{{platform}}' IOS_SIMULATOR='{{simulator}}' ADB_SERIAL='{{adb_serial}}' CDP_PORT='{{cdp_port}}' bash scripts/agentic/validate-recipe.sh --recipe {{recipe_path}} --artifacts-dir {{artifacts_dir}} --runtime-dir \"{{runtime_dir}}\" --metro-port {{metro_port}}",
-    "recycle": "xcrun simctl shutdown {{simulator}}"
+    "recycle": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" && xcrun simctl shutdown {{simulator}}"
   },
   "health": {
     "dev_server_log": "apps/echobridge/.agent/metro.log",
@@ -72,8 +72,8 @@
       "controllable": true,
       "watch": { "type": "port-listen", "port": "{{metro_port}}" },
       "hooks": {
-        "health": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
-        "shutdown": "lsof -ti :{{metro_port}} 2>/dev/null | xargs kill 2>/dev/null; true"
+        "health": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" --check",
+        "shutdown": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\""
       }
     }
   },

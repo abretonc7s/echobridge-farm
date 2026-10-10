@@ -18,4 +18,10 @@ Bootstrap creates the configured AVD directory. Prepare only checks it.
 
 Deploy Farmslot #922 and #924 before this farm. They provide pool environment
 propagation, read-only prerequisites and absolute support-bundle paths on nodes.
-Metro uses a separate session for each slot.
+Metro runs inside Farmslot's recorded prepare scope, with its launcher PID in
+`apps/echobridge/.agent/metro.pid`. Preflight clears a prior recorded launcher;
+resource shutdown and recycle stop the launcher and all its children. Port
+fallback only follows an Expo launcher in this slot's app checkout. A listener
+owned by another checkout causes shutdown to fail without killing it. Resource
+health checks the launcher as well as the port so shutdown still runs after a
+listener has exited. Slot readiness still requires the listening Metro port.
