@@ -13,6 +13,9 @@ load_slot_vars "$SLOT_ID"
 
 # --- Android SDK ---
 source "$SCRIPT_DIR/android-paths.sh"
+if [ -n "${ANDROID_AVD_HOME:-}" ]; then
+  mkdir -p "$ANDROID_AVD_HOME"
+fi
 check_android_paths
 echo "PASS Android SDK: ${ANDROID_HOME}"
 

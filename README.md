@@ -14,6 +14,7 @@ For Android slots, configure `ANDROID_HOME` and `ANDROID_AVD_HOME` in the node's
 `pool.env`. The SDK must provide sdkmanager, avdmanager, adb and emulator. The
 read-only prerequisite check fails before prepare changes the checkout. Machine
 setup uses the same paths and supports the configured primary worktree override.
+Bootstrap creates the configured AVD directory. Prepare only checks it.
 
 Deploy Farmslot #922 and #924 before this farm. They provide pool environment
 propagation, read-only prerequisites and absolute support-bundle paths on nodes.
