@@ -6,6 +6,7 @@
   "owner_agent": "echobridge",
   "apps": ["echobridge"],
   "hooks": {
+    "prerequisites": "bash \"{{farmslot_dir}}/projects/echobridge-farm/setup/check-paths.sh\" \"{{repo}}\" \"{{platform}}\"",
     "setup": "yarn install",
     "preflight": "yarn start --port {{port}}",
     "health_check": "lsof -i :{{port}} >/dev/null 2>&1",
@@ -45,7 +46,7 @@
       "watch": { "type": "process-poll", "cmd": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device" },
       "hooks": {
         "health": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device",
-        "boot": "$ANDROID_HOME/emulator/emulator -avd {{avd}} &",
+        "boot": "\"$ANDROID_HOME/emulator/emulator\" -avd {{avd}} &",
         "shutdown": "adb -s {{adb_serial}} emu kill"
       }
     },
