@@ -8,18 +8,12 @@ BRANCH="${2:-main}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 POOL_DIR="${SCRIPT_DIR}/../../../pool"
-source "${SCRIPT_DIR}/../../../scripts/_slot-common.sh"
+source "${SCRIPT_DIR}/../../../scripts/lib/slot-common.sh"
 load_slot_vars "$SLOT_ID"
 
 # --- Android SDK ---
-export ANDROID_HOME="${ANDROID_HOME:-${HOME}/Library/Android/sdk}"
-export PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${PATH}"
-
-if ! command -v avdmanager &>/dev/null; then
-  echo "FAIL: Android SDK not installed (avdmanager not found)"
-  echo "  Expected at: ${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager"
-  exit 1
-fi
+source "$SCRIPT_DIR/android-paths.sh"
+check_android_paths
 echo "PASS Android SDK: ${ANDROID_HOME}"
 
 # --- System image ---
@@ -52,14 +46,14 @@ fi
 # --- Worktree setup (for monorepo multi-slot) ---
 REPO_DIR="${REPO}"
 if [ ! -d "${REPO_DIR}" ]; then
-  PRIMARY_REPO=$(jq -r '.primary_repo // empty' "${SCRIPT_DIR}/../project.json" 2>/dev/null)
+  PRIMARY_REPO="${ECHOBRIDGE_PRIMARY_REPO:-$(jq -r '.primary_repo // empty' "${SCRIPT_DIR}/../project.json")}"
   if [ -n "${PRIMARY_REPO}" ] && [ -d "${PRIMARY_REPO}/.git" ]; then
     echo "Creating git worktree at ${REPO_DIR}..."
     cd "${PRIMARY_REPO}"
     git worktree add "${REPO_DIR}" "${BRANCH}"
     echo "PASS Worktree created"
   else
-    echo "FAIL: Repo ${REPO_DIR} does not exist and no primary_repo to create worktree from"
+    echo "missing source checkout on ${FARMSLOT_MACHINE:-${MACHINE:-$(hostname)}}, set ECHOBRIDGE_PRIMARY_REPO in pool.env" >&2
     exit 1
   fi
 fi

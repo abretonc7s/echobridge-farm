@@ -8,7 +8,7 @@ BRANCH="${2:-main}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 POOL_DIR="${SCRIPT_DIR}/../../../pool"
-source "${SCRIPT_DIR}/../../../scripts/_slot-common.sh"
+source "${SCRIPT_DIR}/../../../scripts/lib/slot-common.sh"
 load_slot_vars "$SLOT_ID"
 
 # --- macOS check ---

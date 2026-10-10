@@ -4,13 +4,12 @@
   "type": "monorepo",
   "default_safety_tier": "dangerous",
   "owner_agent": "echobridge",
-  "primary_repo": "/Users/deeeed/dev/echobridge/echobridge_monorepo",
-  "worktree_base": "/Users/deeeed/dev/echobridge-wt",
   "apps": ["echobridge"],
   "paths": {
     "runtime_dir": "apps/echobridge/.agent"
   },
   "hooks": {
+    "prerequisites": "bash \"{{farmslot_dir}}/projects/echobridge-farm/setup/check-paths.sh\" \"{{repo}}\" \"{{platform}}\"",
     "setup": "yarn install --immutable",
     "preflight": "METRO_PORT={{metro_port}} WATCHER_PORT={{metro_port}} METRO_CONNECTION=localhost bash apps/echobridge/scripts/agentic/start-metro.sh",
     "health_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
@@ -62,7 +61,7 @@
       "watch": { "type": "process-poll", "cmd": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device" },
       "hooks": {
         "health": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device",
-        "boot": "$ANDROID_HOME/emulator/emulator -avd {{avd}} &",
+        "boot": "\"$ANDROID_HOME/emulator/emulator\" -avd {{avd}} &",
         "shutdown": "adb -s {{adb_serial}} emu kill"
       }
     },
