@@ -20,6 +20,7 @@ async function fixture(t) {
   t.after(() => rmSync(repo, { recursive: true, force: true }));
   const childCode = `const server=require('node:net').createServer(); server.listen(0,'127.0.0.1',()=>process.send({port:server.address().port}));`;
   const launcherCode = `
+    setInterval(()=>{},100);
     const child=require('node:child_process').spawn(process.execPath,['-e',${JSON.stringify(childCode)}],{stdio:['ignore','ignore','ignore','ipc']});
     child.once('message', ({port})=>{
       process.title='npm exec expo start --dev-client --port '+port+' --localhost';
@@ -55,6 +56,18 @@ test('shutdown stops the recorded detached launcher and listener, then is idempo
 test('stale PID file recovers the Metro launcher from its configured listener', { timeout: 4500 }, async t => {
   const f = await fixture(t);
   writeFileSync(f.pidfile, '99999999\n');
+  await execute(process.execPath, [stop, f.repo, String(f.port)]);
+  await stopped(f);
+});
+
+test('recorded launcher is stopped after port cleanup already killed its listener', { timeout: 4500 }, async t => {
+  const f = await fixture(t);
+  writeFileSync(f.pidfile, `${f.launcher}\n`);
+  process.kill(f.child, 'SIGTERM');
+  const deadline = Date.now() + 1000;
+  while (alive(f.child) && Date.now() < deadline) await delay(10);
+  assert.equal(alive(f.child), false);
+  assert.equal(alive(f.launcher), true);
   await execute(process.execPath, [stop, f.repo, String(f.port)]);
   await stopped(f);
 });
