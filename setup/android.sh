@@ -8,18 +8,15 @@ BRANCH="${2:-main}"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 POOL_DIR="${SCRIPT_DIR}/../../../pool"
-source "${SCRIPT_DIR}/../../../scripts/_slot-common.sh"
+source "${SCRIPT_DIR}/../../../scripts/lib/slot-common.sh"
 load_slot_vars "$SLOT_ID"
 
 # --- Android SDK ---
-export ANDROID_HOME="${ANDROID_HOME:-${HOME}/Library/Android/sdk}"
-export PATH="${ANDROID_HOME}/cmdline-tools/latest/bin:${ANDROID_HOME}/platform-tools:${ANDROID_HOME}/emulator:${PATH}"
-
-if ! command -v avdmanager &>/dev/null; then
-  echo "FAIL: Android SDK not installed (avdmanager not found)"
-  echo "  Expected at: ${ANDROID_HOME}/cmdline-tools/latest/bin/avdmanager"
-  exit 1
+source "$SCRIPT_DIR/android-paths.sh"
+if [ -n "${ANDROID_AVD_HOME:-}" ]; then
+  mkdir -p "$ANDROID_AVD_HOME"
 fi
+check_android_paths
 echo "PASS Android SDK: ${ANDROID_HOME}"
 
 # --- System image ---
@@ -59,7 +56,7 @@ if [ ! -d "${REPO_DIR}" ]; then
     git worktree add "${REPO_DIR}" "${BRANCH}"
     echo "PASS Worktree created"
   else
-    echo "FAIL: Repo ${REPO_DIR} does not exist; set ECHOBRIDGE_PRIMARY_REPO to the source checkout"
+    echo "missing source checkout on $(farm_node), set ECHOBRIDGE_PRIMARY_REPO in pool.env" >&2
     exit 1
   fi
 fi
