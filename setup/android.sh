@@ -52,14 +52,14 @@ fi
 # --- Worktree setup (for monorepo multi-slot) ---
 REPO_DIR="${REPO}"
 if [ ! -d "${REPO_DIR}" ]; then
-  PRIMARY_REPO=$(jq -r '.primary_repo // empty' "${SCRIPT_DIR}/../project.json" 2>/dev/null)
+  PRIMARY_REPO="${ECHOBRIDGE_PRIMARY_REPO:-$(jq -r '.primary_repo // empty' "${SCRIPT_DIR}/../project.json")}"
   if [ -n "${PRIMARY_REPO}" ] && [ -d "${PRIMARY_REPO}/.git" ]; then
     echo "Creating git worktree at ${REPO_DIR}..."
     cd "${PRIMARY_REPO}"
     git worktree add "${REPO_DIR}" "${BRANCH}"
     echo "PASS Worktree created"
   else
-    echo "FAIL: Repo ${REPO_DIR} does not exist and no primary_repo to create worktree from"
+    echo "FAIL: Repo ${REPO_DIR} does not exist; set ECHOBRIDGE_PRIMARY_REPO to the source checkout"
     exit 1
   fi
 fi

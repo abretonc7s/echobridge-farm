@@ -4,8 +4,6 @@
   "type": "monorepo",
   "default_safety_tier": "dangerous",
   "owner_agent": "echobridge",
-  "primary_repo": "/Users/deeeed/dev/echobridge/echobridge_monorepo",
-  "worktree_base": "/Users/deeeed/dev/echobridge-wt",
   "apps": ["echobridge"],
   "hooks": {
     "setup": "yarn install",
