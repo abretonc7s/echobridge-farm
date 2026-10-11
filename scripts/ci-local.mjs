@@ -40,7 +40,10 @@ try {
     run(yarn, ['workspace', 'echobridge', 'lint:scripts']);
     run(yarn, ['workspace', 'echobridge', 'validate:sample-config']);
     const related = appFiles.filter((file) => /\.[cm]?[jt]sx?$/.test(file) && existsSync(file)).map((file) => path.resolve(file));
-    const broad = dependency || files.includes('.github/workflows/app.yml') || appFiles.some((file) => /(?:package\.json|(?:jest|babel|tsconfig).*\.[cm]?json|jest.*\.[cm]?js)$/.test(file));
+    const broad = dependency || files.includes('.github/workflows/app.yml') ||
+      files.some((file) => file.startsWith('services/server/src/utils/summary_templates/system/')) ||
+      appFiles.some((file) => file.startsWith('packages/echobridgelib/') ||
+        !/\.[cm]?[jt]sx?$/.test(file) || /(?:^|\/)(?:jest|babel).*\.(?:[cm]?js|json)$/.test(file));
     if (broad) run(yarn, ['workspace', 'echobridge', 'test', '--runInBand', '--watchAll=false']);
     else if (related.length) run(yarn, ['workspace', 'echobridge', 'test', '--runInBand', '--watchAll=false', '--findRelatedTests', ...related, '--passWithNoTests']);
   }

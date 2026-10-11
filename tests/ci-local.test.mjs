@@ -58,13 +58,24 @@ test('source-only app changes select CI lint/types and related product tests', (
   assert.ok(!calls.some((args) => args.includes('server-public')));
 });
 
-test('untracked shared-library source is included in importing app unit coverage', (t) => {
+test('shared-library source selects the app suite whose consumers import compiled output', (t) => {
   const f = fixture(t);
   const file = path.join(f.repo, 'packages/echobridgelib/src/new.ts');
   writeFileSync(file, 'export const added = 1;\n');
   assert.equal(f.run().status, 0);
-  assert.ok(f.calls().some((args) => args.includes('--findRelatedTests') && args.includes(file)));
+  assert.ok(f.calls().some((args) => args.includes('test') && !args.includes('--findRelatedTests')));
 });
+
+for (const file of ['apps/echobridge/src/__snapshots__/feature.test.ts.snap', 'apps/echobridge/babel.config.js', 'services/server/src/utils/summary_templates/system/prompt.md']) {
+  test(`${file} selects the owning app suite`, (t) => {
+    const f = fixture(t);
+    const target = path.join(f.repo, file);
+    mkdirSync(path.dirname(target), { recursive: true });
+    writeFileSync(target, '// changed test input\n');
+    assert.equal(f.run().status, 0);
+    assert.ok(f.calls().some((args) => args.includes('test') && !args.includes('--findRelatedTests')));
+  });
+}
 
 test('deleted app source still selects CI types and lint', (t) => {
   const f = fixture(t);
