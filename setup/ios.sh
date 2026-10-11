@@ -44,16 +44,8 @@ fi
 
 echo "PASS Simulator: ${SIM_NAME} ready"
 
-# --- Dependencies ---
-REPO_DIR="${REPO}"
-if [ ! -d "${REPO_DIR}/node_modules" ]; then
-  echo "Installing dependencies..."
-  cd "${REPO_DIR}"
-  yarn install
-  echo "PASS Dependencies installed"
-else
-  echo "PASS Dependencies: node_modules exists"
-fi
+# --- Dependencies, with native install builds disabled ---
+node "${SCRIPT_DIR}/../scripts/project.mjs" setup "${REPO}"
 
 echo ""
 echo "=== iOS setup complete for ${SLOT_ID} ==="

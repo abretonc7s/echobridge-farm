@@ -61,15 +61,8 @@ if [ ! -d "${REPO_DIR}" ]; then
   fi
 fi
 
-# --- Dependencies ---
-if [ ! -d "${REPO_DIR}/node_modules" ]; then
-  echo "Installing dependencies..."
-  cd "${REPO_DIR}"
-  yarn install
-  echo "PASS Dependencies installed"
-else
-  echo "PASS Dependencies: node_modules exists"
-fi
+# --- Dependencies, with native install builds disabled ---
+node "${SCRIPT_DIR}/../scripts/project.mjs" setup "${REPO}"
 
 # --- Boot emulator if ADB_SERIAL is set ---
 if [ -n "${ADB_SERIAL}" ]; then

@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+FARM_ROOT="{{farmslot_dir}}"
+case "$FARM_ROOT" in
+  '~/'*) FARM_ROOT="$HOME/${FARM_ROOT#\~/}" ;;
+esac
+exec node "$FARM_ROOT/projects/echobridge-farm/scripts/ci-local.mjs"

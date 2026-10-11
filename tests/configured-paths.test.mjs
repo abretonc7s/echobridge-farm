@@ -9,6 +9,15 @@ import { expandHook } from './hook.mjs';
 
 const check = fileURLToPath(new URL('../setup/check-paths.sh', import.meta.url));
 
+function projectFixture(framework, repo) {
+  const scripts = path.join(framework, 'projects/echobridge-farm/scripts');
+  const recipe = path.join(repo, 'apps/echobridge/scripts/agentic/recipe');
+  mkdirSync(scripts, { recursive: true });
+  mkdirSync(recipe, { recursive: true });
+  copyFileSync(fileURLToPath(new URL('../scripts/project.mjs', import.meta.url)), path.join(scripts, 'project.mjs'));
+  writeFileSync(path.join(recipe, 'run-echobridge-recipe.mjs'), 'console.log(JSON.stringify({status:"pass"}));\n');
+}
+
 function fixture(t) {
   const root = realpathSync(mkdtempSync(path.join(tmpdir(), 'echo SDK ')));
   t.after(() => rmSync(root, { recursive: true, force: true }));
@@ -107,20 +116,27 @@ test('bootstrap creates the configured AVD directory before the first AVD', t =>
   writeFileSync(path.join(f.sdk, 'cmdline-tools/latest/bin/avdmanager'), '#!/bin/sh\n[ "$1" != list ] || exit 0\ntest -d "$ANDROID_AVD_HOME" || exit 2\nprintf "%s\\n" "$@" > "$TEST_AVD_CALL"\n');
   const repo = path.join(f.root, 'slot checkout');
   mkdirSync(path.join(repo, 'node_modules'), { recursive: true });
+  projectFixture(framework, repo);
+  const bin = path.join(f.root, 'bin');
+  mkdirSync(bin);
+  writeFileSync(path.join(bin, 'yarn'), '#!/bin/sh\nprintf "%s\\n" "$@" > "$TEST_YARN_CALL"\n', { mode: 0o755 });
   const call = path.join(f.root, 'avd-call.txt');
+  const yarnCall = path.join(f.root, 'yarn-call.txt');
   const result = spawnSync('bash', [path.join(setup, 'android.sh'), 'test-slot'], {
     env: {
-      PATH: process.env.PATH,
+      PATH: bin + path.delimiter + process.env.PATH,
       ANDROID_HOME: f.sdk,
       ANDROID_AVD_HOME: path.join(f.root, 'new AVD directory'),
       TEST_REPO: repo,
       TEST_AVD_CALL: call,
+      TEST_YARN_CALL: yarnCall,
     },
     encoding: 'utf8',
     timeout: 2000,
   });
   assert.equal(result.status, 0, result.stderr);
   assert.match(readFileSync(call, 'utf8'), /^create\navd\n-n\nfirst-avd\n/);
+  assert.equal(readFileSync(yarnCall, 'utf8'), 'install\n--immutable\n--mode=skip-build\n');
 });
 
 test('recipe hooks preserve checkout and file arguments containing spaces', t => {
@@ -136,9 +152,12 @@ test('recipe hooks preserve checkout and file arguments containing spaces', t =>
   const repo = path.join(f.root, 'slot checkout');
   const app = path.join(repo, 'apps/echobridge');
   mkdirSync(app, { recursive: true });
+  const framework = path.join(f.root, 'framework');
+  projectFixture(framework, repo);
   const recipe = path.join(f.root, 'recipe library/smoke test.json');
   const artifacts = path.join(f.root, 'run artifacts');
   const values = {
+    farmslot_dir: framework,
     repo,
     platform: 'android',
     simulator: 'Test Sim',
