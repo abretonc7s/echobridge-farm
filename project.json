@@ -4,24 +4,31 @@
   "type": "monorepo",
   "default_safety_tier": "dangerous",
   "owner_agent": "echobridge",
-  "apps": ["echobridge"],
+  "apps": [
+    "echobridge"
+  ],
   "paths": {
-    "runtime_dir": "apps/echobridge/.agent"
+    "runtime_dir": "apps/echobridge/.agent",
+    "artifact_dir": ".task",
+    "recipe_dir": "apps/echobridge/scripts/agentic/recipe/recipes"
   },
   "hooks": {
     "prerequisites": "bash \"{{farmslot_dir}}/projects/echobridge-farm/setup/check-paths.sh\" \"{{repo}}\" \"{{platform}}\"",
-    "setup": "yarn install --immutable",
-    "preflight": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" && METRO_USE_TMUX=0 METRO_PORT={{metro_port}} WATCHER_PORT={{metro_port}} METRO_CONNECTION=localhost bash apps/echobridge/scripts/agentic/start-metro.sh",
-    "health_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
+    "setup": "node '{{farmslot_dir}}/projects/echobridge-farm/scripts/project.mjs' setup '{{repo}}'",
+    "preflight": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" && node '{{farmslot_dir}}/projects/echobridge-farm/scripts/project.mjs' preflight '{{repo}}' '{{metro_port}}'",
+    "health_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1 && echo ready",
     "dev_server_check": "lsof -nP -iTCP:{{metro_port}} -sTCP:LISTEN >/dev/null 2>&1",
     "recipe_action_manifest": "cd \"{{repo}}/apps/echobridge\" && yarn recipe:echobridge manifest",
-    "recipe_doctor": "cd \"{{repo}}/apps/echobridge\" && yarn recipe:doctor --json | node -e 'let s=\"\"; process.stdin.on(\"data\",d=>s+=d); process.stdin.on(\"end\",()=>{const d=JSON.parse(s); const pass=d.status===\"pass\"; console.log(JSON.stringify({runner_protocol_version:1,status:pass?\"pass\":\"fail\",checks:[{id:\"expo_recipe_doctor\",status:pass?\"pass\":\"fail\",message:\"@farmslot/expo-recipe doctor readiness\"}]}));})'",
+    "recipe_doctor": "node '{{farmslot_dir}}/projects/echobridge-farm/scripts/project.mjs' doctor '{{repo}}'",
     "recipe_run": "cd \"{{repo}}/apps/echobridge\" && PLATFORM='{{platform}}' IOS_SIMULATOR='{{simulator}}' ADB_SERIAL='{{adb_serial}}' CDP_PORT='{{cdp_port}}' bash scripts/agentic/validate-recipe.sh --recipe {{recipe_path}} --artifacts-dir {{artifacts_dir}} --runtime-dir \"{{runtime_dir}}\" --metro-port {{metro_port}}",
-    "recycle": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" && xcrun simctl shutdown {{simulator}}"
+    "recycle": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" && xcrun simctl shutdown {{simulator}}",
+    "post_merge_install": "node '{{farmslot_dir}}/projects/echobridge-farm/scripts/project.mjs' setup '{{repo}}'"
   },
   "health": {
     "dev_server_log": "apps/echobridge/.agent/metro.log",
-    "dev_server_name": "Metro"
+    "dev_server_name": "Metro",
+    "parse_health": "tail -1",
+    "ready_indicator": "ready"
   },
   "platforms": {
     "ios": {
@@ -30,7 +37,7 @@
     },
     "android": {
       "device_check": "adb devices 2>/dev/null | grep -q '{{adb_serial}}'",
-      "recycle": "adb -s {{adb_serial}} shell pm clear com.echobridge"
+      "recycle": "adb -s {{adb_serial}} shell pm clear net.siteed.echobridge.dev"
     }
   },
   "resources": {
@@ -58,7 +65,10 @@
       "label": "Android Emu",
       "streamable": true,
       "controllable": true,
-      "watch": { "type": "process-poll", "cmd": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device" },
+      "watch": {
+        "type": "process-poll",
+        "cmd": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device"
+      },
       "hooks": {
         "health": "adb -s {{adb_serial}} get-state 2>/dev/null | grep -q device",
         "boot": "\"$ANDROID_HOME/emulator/emulator\" -avd {{avd}} &",
@@ -70,7 +80,10 @@
       "label": "Metro",
       "streamable": false,
       "controllable": true,
-      "watch": { "type": "port-listen", "port": "{{metro_port}}" },
+      "watch": {
+        "type": "port-listen",
+        "port": "{{metro_port}}"
+      },
       "hooks": {
         "health": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\" --check",
         "shutdown": "node \"{{farmslot_dir}}/projects/echobridge-farm/setup/stop-metro.mjs\" \"{{repo}}\" \"{{metro_port}}\""
@@ -78,5 +91,73 @@
     }
   },
   "recipe_run_supports_playback_slow": false,
-  "recipe_run_supports_video_recording": false
+  "recipe_run_supports_video_recording": false,
+  "repo_url": "git@github.com:deeeed/echobridge_monorepo.git",
+  "qa": {
+    "default_profile": "smoke",
+    "profiles": [
+      {
+        "id": "smoke",
+        "title": "EchoBridge runtime smoke",
+        "description": "Validate configuration and prove the core tabs in the selected development runtime, retaining HUD screenshots and the artifact package.",
+        "template_id": "qa/smoke"
+      }
+    ]
+  },
+  "fixtures": {
+    "templates": [
+      {
+        "src": "domains/echobridge/context.md",
+        "dst": "apps/echobridge/.agent/domain-context.md"
+      },
+      {
+        "src": "ci-parity",
+        "dst": "apps/echobridge/.agent/ci-parity"
+      }
+    ]
+  },
+  "command_env": {
+    "set": {
+      "ECHOBRIDGE_SKIP_DOTENV": "1",
+      "EXPO_NO_DOTENV": "1",
+      "METRO_USE_TMUX": "0",
+      "BROWSER": "none"
+    },
+    "domains": {
+      "echobridge": {
+        "set": {
+          "RECIPE_LIBRARY_PATH": "echobridge={{repo}}/apps/echobridge/scripts/agentic/recipe"
+        }
+      }
+    }
+  },
+  "execution_templates": {
+    "sources": [
+      {
+        "id": "project:echobridge",
+        "kind": "workspace",
+        "root": {
+          "projectPath": "templates/checklists"
+        }
+      }
+    ],
+    "defaults": [
+      {
+        "when": {
+          "flow": "dev"
+        },
+        "templateId": "dev/default"
+      },
+      {
+        "when": {
+          "flow": "qa"
+        },
+        "templateId": "qa/smoke"
+      }
+    ]
+  },
+  "default_branch": "main",
+  "ci": {
+    "local_check": "bash apps/echobridge/.agent/ci-parity"
+  }
 }
