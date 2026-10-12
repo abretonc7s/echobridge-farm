@@ -119,7 +119,7 @@ test('bootstrap creates the configured AVD directory before the first AVD', t =>
   projectFixture(framework, repo);
   const bin = path.join(f.root, 'bin');
   mkdirSync(bin);
-  writeFileSync(path.join(bin, 'yarn'), '#!/bin/sh\nprintf "%s\\n" "$@" > "$TEST_YARN_CALL"\n', { mode: 0o755 });
+  writeFileSync(path.join(bin, 'yarn'), '#!/bin/sh\nprintf "%s\\n" "$@" >> "$TEST_YARN_CALL"\n', { mode: 0o755 });
   const call = path.join(f.root, 'avd-call.txt');
   const yarnCall = path.join(f.root, 'yarn-call.txt');
   const result = spawnSync('bash', [path.join(setup, 'android.sh'), 'test-slot'], {
@@ -136,7 +136,7 @@ test('bootstrap creates the configured AVD directory before the first AVD', t =>
   });
   assert.equal(result.status, 0, result.stderr);
   assert.match(readFileSync(call, 'utf8'), /^create\navd\n-n\nfirst-avd\n/);
-  assert.equal(readFileSync(yarnCall, 'utf8'), 'install\n--immutable\n--mode=skip-build\n');
+  assert.equal(readFileSync(yarnCall, 'utf8'), 'install\n--immutable\n--mode=skip-build\nworkspace\nechobridgelib\nbuild\n');
 });
 
 test('recipe hooks preserve checkout and file arguments containing spaces', t => {

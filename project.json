@@ -113,6 +113,14 @@
       {
         "src": "ci-parity",
         "dst": "apps/echobridge/.agent/ci-parity"
+      },
+      {
+        "src": "runtime/recipe-quality.md",
+        "dst": "{{runtime_dir}}/recipe-quality.md"
+      },
+      {
+        "src": "runtime/review-quality.md",
+        "dst": "{{runtime_dir}}/review-quality.md"
       }
     ]
   },
@@ -159,5 +167,9 @@
   "default_branch": "main",
   "ci": {
     "local_check": "bash apps/echobridge/.agent/ci-parity"
+  },
+  "vars": {
+    "recipe_quality_path": "{{runtime_dir}}/recipe-quality.md",
+    "review_quality_path": "{{runtime_dir}}/review-quality.md"
   }
 }

@@ -35,6 +35,7 @@ try {
   if (command === 'setup') {
     // Yarn 4 skip-build disables install scripts, including native dependency builds.
     run('yarn', ['install', '--immutable', '--mode=skip-build'], repoRoot);
+    run('yarn', ['workspace', 'echobridgelib', 'build'], repoRoot);
   }
   if (command === 'preflight') {
     const recipes = readdirSync(path.join(recipeRoot, 'recipes')).filter((name) => name.endsWith('.recipe.json'));
