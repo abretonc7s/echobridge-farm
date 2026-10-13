@@ -99,7 +99,7 @@
       {
         "id": "smoke",
         "title": "EchoBridge runtime smoke",
-        "description": "Validate configuration and prove the core tabs in the selected development runtime, retaining HUD screenshots and the artifact package.",
+        "description": "Validate configuration and prove the core tabs in the selected development runtime, retaining screenshots and the artifact package. The default recipe HUD is recommended, especially in video, but is not mandatory.",
         "template_id": "qa/smoke"
       }
     ]
