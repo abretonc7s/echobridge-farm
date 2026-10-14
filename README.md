@@ -1,5 +1,25 @@
 # EchoBridge farm
 
+## Shared recipe provider
+
+The pack declares the product's `createProvider` factory at
+`apps/echobridge/scripts/agentic/recipe/provider.mjs` and selects the app checkout
+at `apps/echobridge`. The shared Farmslot host owns catalog resolution and recipe
+execution. The default checked recipe is `expo.config`.
+
+Install the product commit containing that factory and its reviewed recipe SDK
+dependencies before adopting this declaration. The factory supplies the existing
+EchoBridge actions and transports for core, web and mobile; iOS and Android use
+mobile with the selected slot's target. This pack does not copy the provider or
+recipe engine. Registered pool slots must also select `app: apps/echobridge`. Update the product's farm gitlink after the pack merges.
+
+From a prepared slot checkout, use the shared CLI to discover and validate:
+
+```bash
+farmslot recipe actions --project echobridge-farm --json
+farmslot doctor --project echobridge-farm --conformance --json
+```
+
 Register each slot with its own checkout path. When Android setup needs to create
 a missing worktree, set `ECHOBRIDGE_PRIMARY_REPO` to this machine's source checkout:
 

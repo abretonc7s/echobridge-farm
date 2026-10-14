@@ -5,7 +5,7 @@
   "default_safety_tier": "dangerous",
   "owner_agent": "echobridge",
   "apps": [
-    "echobridge"
+    "apps/echobridge"
   ],
   "paths": {
     "runtime_dir": "apps/echobridge/.agent",
@@ -171,5 +171,21 @@
   "vars": {
     "recipe_quality_path": "{{runtime_dir}}/recipe-quality.md",
     "review_quality_path": "{{runtime_dir}}/review-quality.md"
+  },
+  "recipe": {
+    "provider": {
+      "module": "./provider.mjs",
+      "root": {
+        "projectPath": "apps/echobridge/scripts/agentic/recipe"
+      }
+    },
+    "app": "apps/echobridge",
+    "adapter": "mobile",
+    "domain": "echobridge",
+    "checks": [
+      {
+        "recipe": "expo.config"
+      }
+    ]
   }
 }
