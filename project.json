@@ -187,5 +187,141 @@
         "recipe": "expo.config"
       }
     ]
+  },
+  "runtime_capabilities": {
+    "providers": {
+      "ios-simulator": {
+        "label": "Assigned iOS simulator",
+        "description": "Reserve the prepared slot target for recipe proof without restarting its app or Metro.",
+        "version": "1",
+        "share_policy": "exclusive",
+        "cost": {
+          "class": "low",
+          "resources": [
+            {
+              "id": "ios-sim",
+              "kind": "device",
+              "access": "exclusive",
+              "scope": "slot"
+            }
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "platform": {
+              "const": "ios"
+            },
+            "simulator": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._:][A-Za-z0-9._:-]*$"
+            }
+          },
+          "required": [
+            "platform",
+            "simulator"
+          ]
+        },
+        "actions": {
+          "acquire": {
+            "kind": "resource",
+            "resource_id": "ios-sim",
+            "action": "health"
+          },
+          "health": {
+            "kind": "resource",
+            "resource_id": "ios-sim",
+            "action": "health"
+          },
+          "release": {
+            "kind": "slot-action",
+            "action_id": "native-reservation-retain"
+          }
+        },
+        "affected_resources": [
+          {
+            "resource_id": "ios-sim",
+            "ownership": "slot-lifecycle",
+            "release_effect": "retain"
+          }
+        ],
+        "release_effects": [
+          "Release only the reservation; preserve the prepared device, app and Metro"
+        ],
+        "keep_warm_ms": 0
+      },
+      "android-device": {
+        "label": "Assigned Android emulator",
+        "description": "Reserve the prepared slot target for recipe proof without restarting its app or Metro.",
+        "version": "1",
+        "share_policy": "exclusive",
+        "cost": {
+          "class": "low",
+          "resources": [
+            {
+              "id": "android-emu",
+              "kind": "device",
+              "access": "exclusive",
+              "scope": "slot"
+            }
+          ]
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "platform": {
+              "const": "android"
+            },
+            "adb_serial": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._:][A-Za-z0-9._:-]*$"
+            }
+          },
+          "required": [
+            "platform",
+            "adb_serial"
+          ]
+        },
+        "actions": {
+          "acquire": {
+            "kind": "resource",
+            "resource_id": "android-emu",
+            "action": "health"
+          },
+          "health": {
+            "kind": "resource",
+            "resource_id": "android-emu",
+            "action": "health"
+          },
+          "release": {
+            "kind": "slot-action",
+            "action_id": "native-reservation-retain"
+          }
+        },
+        "affected_resources": [
+          {
+            "resource_id": "android-emu",
+            "ownership": "slot-lifecycle",
+            "release_effect": "retain"
+          }
+        ],
+        "release_effects": [
+          "Release only the reservation; preserve the prepared device, app and Metro"
+        ],
+        "keep_warm_ms": 0
+      }
+    }
+  },
+  "slot_actions": {
+    "native-reservation-retain": {
+      "label": "Release native reservation",
+      "description": "Return the prepared native target to its slot lifecycle without stopping it.",
+      "command": "true",
+      "refresh": [
+        "resources"
+      ]
+    }
   }
 }
