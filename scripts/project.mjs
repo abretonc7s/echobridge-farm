@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { spawnSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { mkdirSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
@@ -41,7 +42,7 @@ try {
     const recipes = readdirSync(path.join(recipeRoot, 'recipes')).filter((name) => name.endsWith('.recipe.json'));
     if (recipes.length === 0) throw new Error('No EchoBridge recipes found.');
     for (const recipe of recipes) runner(['validate', path.join(recipeRoot, 'recipes', recipe), '--adapter', 'mobile', '--json']);
-    const artifactsDir = path.join(appRoot, '.agent/farmslot/config-smoke');
+    const artifactsDir = path.join(appRoot, '.agent/farmslot/config-smoke', randomUUID());
     mkdirSync(artifactsDir, { recursive: true });
     runner(['run', configRecipe, '--adapter', 'core', '--artifacts-dir', artifactsDir, '--json']);
     if (metroPort) {
