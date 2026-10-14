@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Use generated task instructions for engine-owned acceptance claims, coverage rendering and verified human review; remove manual verdict commands.
+
 - Declare the product-owned shared recipe provider and select the actual `apps/echobridge` checkout path.
 
 - Track active EchoBridge dev/QA workflows and native-build-free setup; require a recorded product CI check before PR handoff.
