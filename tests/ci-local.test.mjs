@@ -117,5 +117,8 @@ test('active catalog is tracked with one shared CI step and retains the acceptan
   assert.match(config.hooks.preflight, /stop-metro\.mjs.*project\.mjs/);
   assert.match(config.hooks.prerequisites, /check-paths\.sh/);
   assert.match(config.resources['dev-server'].hooks.shutdown, /stop-metro\.mjs/);
-  assert.match(readFileSync(path.join(farm, 'templates/task-document.md'), 'utf8'), /--require-acceptance-status/);
+  const acceptance = readFileSync(path.join(farm, 'templates/task-document.md'), 'utf8');
+  assert.match(acceptance, /generated.*TASK\.md/);
+  assert.match(acceptance, /Recipe proof \+ acceptance review/);
+  assert.doesNotMatch(acceptance, /ac set|FARMSLOT_ACCEPTANCE_ROOT|untestable --note/);
 });
