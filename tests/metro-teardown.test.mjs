@@ -69,6 +69,7 @@ test('recorded launcher is stopped after port cleanup already killed its listene
   while (alive(f.child) && Date.now() < deadline) await delay(10);
   assert.equal(alive(f.child), false);
   assert.equal(alive(f.launcher), true);
+  await assert.rejects(execute(process.execPath, [stop, f.repo, String(f.port), '--check-owned']), { code: 3 });
   const project = JSON.parse(readFileSync(new URL('../project.json', import.meta.url), 'utf8'));
   const framework = path.join(f.repo, 'framework');
   const setup = path.join(framework, 'projects/echobridge-farm/setup');
@@ -100,4 +101,28 @@ test('foreign configured-port listener fails shutdown without stopping its owner
   assert.equal(alive(f.launcher), true);
   assert.equal(alive(other.launcher), true);
   assert.equal(alive(other.child), true);
+});
+
+test('owned Metro check observes the prepared server and reports empty after shutdown', { timeout: 4500 }, async t => {
+  const f = await fixture(t);
+  writeFileSync(f.pidfile, `${f.launcher}\n`);
+  await execute(process.execPath, [stop, f.repo, String(f.port), '--check-owned']);
+  assert.equal(alive(f.launcher), true);
+  assert.equal(alive(f.child), true);
+  assert.equal(readFileSync(f.pidfile, 'utf8'), `${f.launcher}\n`);
+  await execute(process.execPath, [stop, f.repo, String(f.port)]);
+  await stopped(f);
+  await assert.rejects(execute(process.execPath, [stop, f.repo, String(f.port), '--check-owned']), { code: 1 });
+});
+
+test('owned Metro check distinguishes a foreign listener while retaining health semantics', { timeout: 4500 }, async t => {
+  const f = await fixture(t);
+  const other = await fixture(t);
+  writeFileSync(f.pidfile, `${other.launcher}\n`);
+  await execute(process.execPath, [stop, f.repo, String(other.port), '--check']);
+  await assert.rejects(execute(process.execPath, [stop, f.repo, String(other.port), '--check-owned']), { code: 2 });
+  assert.equal(alive(f.launcher), true);
+  assert.equal(alive(other.launcher), true);
+  assert.equal(alive(other.child), true);
+  assert.equal(readFileSync(f.pidfile, 'utf8'), `${other.launcher}\n`);
 });
