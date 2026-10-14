@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Declare native proof reservations through existing iOS/Android health hooks; releasing a reservation preserves the prepared device, app and Metro.
+
 - Use generated task instructions for engine-owned acceptance claims, coverage rendering and verified human review; remove manual verdict commands.
 
 - Declare the product-owned shared recipe provider and select the actual `apps/echobridge` checkout path.

@@ -67,3 +67,17 @@ syncing this pack. Sync the approved farm source into the operator clone and
 retain local tasks and pool configuration. The product checkout owns recipes
 and their public fixture environment; this repository owns farm hooks and
 checklists. Run `node --test tests/*.test.mjs` for pack regressions.
+
+## Native proof ownership
+
+The shared capability catalog exposes `ios-simulator` and `android-device` for
+prepared slots. Acquisition health-checks the configured target and requires an
+explicit platform plus simulator or Android serial. Release clears the gateway
+reservation and retains the device, app and Metro. The existing slot lifecycle
+continues to own preparation and teardown, including its ownership-checking Metro
+stop helper.
+
+Use a real owner run and the public capability acquisition before live recipe
+conformance. iOS proof precedes Android. No web target is declared by these native
+capabilities. `recipe.provider` continues to use the product's shared runtime and
+the default engine.
