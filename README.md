@@ -81,3 +81,5 @@ Use a real owner run and the public capability acquisition before live recipe
 conformance. iOS proof precedes Android. No web target is declared by these native
 capabilities. `recipe.provider` continues to use the product's shared runtime and
 the default engine.
+
+The product recipe provider uses `setup/stop-metro.mjs <repo> <port> --check-owned` before native launch: 0 means this checkout owns the prepared Metro, 1 means no Metro or listener, 2 means a foreign listener, and 3 means an owned launcher without a ready listener. This check never stops a process. Existing `--check` keeps its resource-health meaning.

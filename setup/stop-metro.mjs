@@ -5,7 +5,7 @@ import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 const [repo, port, mode] = process.argv.slice(2);
-if (!repo || !/^\d+$/.test(port || '') || (mode && mode !== '--check')) throw new Error('Usage: stop-metro.mjs <repo> <metro-port> [--check]');
+if (!repo || !/^\d+$/.test(port || '') || (mode && !['--check', '--check-owned'].includes(mode))) throw new Error('Usage: stop-metro.mjs <repo> <metro-port> [--check|--check-owned]');
 const app = realpathSync(path.join(repo, 'apps/echobridge'));
 const pidfile = path.join(app, '.agent/metro.pid');
 function command(binary, args) {
@@ -31,15 +31,21 @@ if (existsSync(pidfile)) {
 }
 // A listener is often Expo's child. Recover its launcher when the PID file is stale.
 const portListeners = listeners();
+const ownedListeners = new Set();
 for (const listener of portListeners) {
   let row = processes.get(listener);
   while (row && row.pid > 1) {
-    if (isMetro(row)) roots.add(row.pid);
+    if (isMetro(row)) { roots.add(row.pid); ownedListeners.add(listener); }
     row = processes.get(row.parent);
   }
 }
 // Resource control skips shutdown when health fails. A surviving launcher still runs.
 if (mode === '--check') process.exit(roots.size || portListeners.length ? 0 : 1);
+// Recipe launch may borrow this checkout's prepared Metro, but never another listener.
+if (mode === '--check-owned') {
+  if (portListeners.some(pid => !ownedListeners.has(pid))) process.exit(2);
+  process.exit(portListeners.length ? 0 : roots.size ? 3 : 1);
+}
 const owned = new Set(roots);
 for (const pid of owned) for (const row of rows) if (row.parent === pid) owned.add(row.pid);
 function signal(pid, signal) {
