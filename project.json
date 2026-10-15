@@ -94,7 +94,6 @@
   "recipe_run_supports_video_recording": false,
   "repo_url": "git@github.com:deeeed/echobridge_monorepo.git",
   "qa": {
-    "default_profile": "smoke",
     "profiles": [
       {
         "id": "smoke",
